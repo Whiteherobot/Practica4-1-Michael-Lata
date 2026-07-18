@@ -421,13 +421,13 @@ Este informe documenta el trabajo técnico completo (entrenamiento, benchmarks, 
 \section*{Declaración de uso de herramientas de IA}
 % =============================================================================
 
-Parte del código y de este informe se desarrolló con asistencia del modelo de inteligencia artificial \textbf{Claude Sonnet} (Anthropic, 2025), específicamente en:
+Parte del trabajo de esta práctica se apoyó en el modelo de inteligencia artificial \textbf{Claude Sonnet} (Anthropic, 2025), principalmente como asistente de programación y de redacción. En concreto ayudó a:
 
 \begin{itemize}
-  \item Script de fusión de datasets y conversión de bounding boxes a polígonos rectangulares para segmentación (\texttt{merge\_dataset.py}, trabajo individual previo de Michael Lata, no incluido en el cuerpo principal de este informe por decisión de usar el resultado de equipo de la Parte 1A).
-  \item Investigación y validación de \textbf{RealPLKSR} como reemplazo de Real-ESRGAN para cumplir el requisito de antigüedad de la red de super resolución.
-  \item Depuración del error de configuración de CMake (enlazado de módulos \texttt{hdf}/\texttt{viz} de OpenCV con símbolos rotos) y del error de medición en el pipeline GPU-only de la Parte 1C (creación de filtros CUDA dentro del ciclo de benchmark).
-  \item Redacción y estructuración de este informe a partir de los resultados generados en las ejecuciones reales de cada parte.
+  \item Escribir el script de fusión de datasets y la conversión de bounding boxes a polígonos rectangulares para entrenar segmentación, en una exploración individual previa de Michael Lata sobre un dataset propio.
+  \item Investigar y validar \textbf{RealPLKSR} como reemplazo de Real-ESRGAN, para cumplir el requisito de la guía de usar una red de super resolución de no más de 2 años de antigüedad.
+  \item Depurar dos errores técnicos de la Parte 1C: un problema de configuración de CMake (el enlazado por defecto arrastraba módulos de OpenCV con símbolos rotos) y un error de medición en el pipeline GPU-only, donde los filtros CUDA se creaban dentro del ciclo de benchmark en lugar de una sola vez.
+  \item Redactar este informe a partir de los resultados obtenidos en las ejecuciones reales de cada parte.
 \end{itemize}
 
 La lógica central de procesamiento de imágenes (transfer learning con YOLO, operaciones de \texttt{cv::cuda}, benchmarking GPU vs CPU) sigue directamente las formulaciones de la \textit{Guía de Práctica 4.1-4.2} del docente y el material teórico de la asignatura.
