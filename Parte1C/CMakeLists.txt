@@ -11,7 +11,8 @@ set(CUDA_TOOLKIT_ROOT_DIR /opt/cuda)
 set(ENV{PATH} "/opt/cuda/bin:$ENV{PATH}")
 
 set(OpenCV_DIR /usr/lib/cmake/opencv5)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui videoio
+    cudaarithm cudafilters cudaimgproc cudawarping)
 message(STATUS "OpenCV version: ${OpenCV_VERSION}")
 
 if(NOT OpenCV_CUDA_VERSION)

@@ -42,36 +42,46 @@ cv::Mat pipeline_cpu(const cv::Mat& frame, double& ms_total) {
 
 // Pipeline GPU-only: un solo upload al inicio, todo el trabajo con cv::cuda::GpuMat,
 // un solo download al final (evita el cuello de botella de transferencias CPU<->GPU).
-cv::Mat pipeline_gpu_only(const cv::Mat& frame, double& ms_total) {
-    auto t0 = Clock::now();
+//
+// Los filtros CUDA (createGaussianFilter, createMorphologyFilter, createCannyEdgeDetector)
+// se crean UNA sola vez fuera del bucle de benchmark y se reusan con ->apply()/->detect() en
+// cada frame: crearlos de nuevo en cada llamada paga el costo de allocacion/planificacion del
+// filtro en cada iteracion, lo que hace perder la ventaja de la GPU frente a CPU.
+struct GpuPipeline {
+    cv::Ptr<cv::cuda::Filter> gauss;
+    cv::Ptr<cv::cuda::Filter> erode_f;
+    cv::Ptr<cv::cuda::Filter> dilate_f;
+    cv::Ptr<cv::cuda::CannyEdgeDetector> canny;
 
-    cv::cuda::GpuMat d_frame, d_gray, d_blur, d_eq, d_morph, d_edges;
-    d_frame.upload(frame);
+    explicit GpuPipeline(int type) {
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+        gauss = cv::cuda::createGaussianFilter(type, type, cv::Size(5, 5), 1.5);
+        erode_f = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE, type, kernel);
+        dilate_f = cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, type, kernel);
+        canny = cv::cuda::createCannyEdgeDetector(50, 150);
+    }
 
-    cv::cuda::cvtColor(d_frame, d_gray, cv::COLOR_BGR2GRAY);
+    cv::Mat process(const cv::Mat& frame, double& ms_total) {
+        auto t0 = Clock::now();
 
-    auto gauss = cv::cuda::createGaussianFilter(d_gray.type(), d_gray.type(), cv::Size(5, 5), 1.5);
-    gauss->apply(d_gray, d_blur);
+        cv::cuda::GpuMat d_frame, d_gray, d_blur, d_eq, d_morph, d_edges;
+        d_frame.upload(frame);
+        cv::cuda::cvtColor(d_frame, d_gray, cv::COLOR_BGR2GRAY);
+        gauss->apply(d_gray, d_blur);
+        cv::cuda::equalizeHist(d_blur, d_eq);
+        erode_f->apply(d_eq, d_morph);
+        dilate_f->apply(d_morph, d_morph);
+        canny->detect(d_morph, d_edges);
 
-    cv::cuda::equalizeHist(d_blur, d_eq);
+        cv::Mat result;
+        d_edges.download(result);
 
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
-    auto erode_f = cv::cuda::createMorphologyFilter(cv::MORPH_ERODE, d_eq.type(), kernel);
-    auto dilate_f = cv::cuda::createMorphologyFilter(cv::MORPH_DILATE, d_eq.type(), kernel);
-    erode_f->apply(d_eq, d_morph);
-    dilate_f->apply(d_morph, d_morph);
-
-    auto canny = cv::cuda::createCannyEdgeDetector(50, 150);
-    canny->detect(d_morph, d_edges);
-
-    cv::Mat result;
-    d_edges.download(result);
-
-    ms_total = elapsed_ms(t0);
-    cv::Mat out;
-    cv::cvtColor(result, out, cv::COLOR_GRAY2BGR);
-    return out;
-}
+        ms_total = elapsed_ms(t0);
+        cv::Mat out;
+        cv::cvtColor(result, out, cv::COLOR_GRAY2BGR);
+        return out;
+    }
+};
 
 void run_on_image(const std::string& path) {
     cv::Mat frame = cv::imread(path);
@@ -89,8 +99,14 @@ void run_on_image(const std::string& path) {
         out_cpu = pipeline_cpu(frame, ms);
         t_cpu.push_back(ms);
     }
+
+    cv::Mat gray;
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    GpuPipeline gpu(gray.type());
+    // Warmup: la primera llamada a cada filtro CUDA compila/inicializa recursos internos.
+    gpu.process(frame, ms);
     for (int i = 0; i < N; ++i) {
-        out_gpu = pipeline_gpu_only(frame, ms);
+        out_gpu = gpu.process(frame, ms);
         t_gpu.push_back(ms);
     }
 
@@ -117,14 +133,21 @@ void run_on_webcam(int device) {
     }
     std::cout << "Presiona 'g' para pipeline GPU-only, 'c' para CPU, 'q' para salir\n";
 
-    bool use_gpu = true;
-    cv::Mat frame, out;
-    double ms;
-    while (true) {
-        cap >> frame;
-        if (frame.empty()) break;
+    cv::Mat first_frame;
+    cap >> first_frame;
+    if (first_frame.empty()) {
+        std::cerr << "No se pudo leer el primer frame de la camara\n";
+        return;
+    }
+    cv::Mat first_gray;
+    cv::cvtColor(first_frame, first_gray, cv::COLOR_BGR2GRAY);
+    GpuPipeline gpu(first_gray.type());
 
-        out = use_gpu ? pipeline_gpu_only(frame, ms) : pipeline_cpu(frame, ms);
+    bool use_gpu = true;
+    cv::Mat frame = first_frame, out;
+    double ms;
+    while (!frame.empty()) {
+        out = use_gpu ? gpu.process(frame, ms) : pipeline_cpu(frame, ms);
         double fps = 1000.0 / ms;
 
         std::string label = (use_gpu ? "GPU-only" : "CPU") + std::string(" | FPS: ") + std::to_string(fps);
@@ -136,6 +159,8 @@ void run_on_webcam(int device) {
         if (key == 'q') break;
         if (key == 'g') use_gpu = true;
         if (key == 'c') use_gpu = false;
+
+        cap >> frame;
     }
 }
 
