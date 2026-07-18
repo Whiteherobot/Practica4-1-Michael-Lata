@@ -132,9 +132,9 @@
 % --- Resumen ---
 \section*{Resumen}
 
-Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) la hicimos en equipo entre Jordy Romero y Michael Lata: entrenamos YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), y medimos una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS) en una RTX 3080.
+Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) la hicimos en equipo junto a Jordy Romero: entrenamos YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), y medimos una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS) en una RTX 3080.
 
-Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo (Michael Lata, RTX 4060 Laptop). En la Parte 1B comparé YOLOv12n y YOLOv26n para detección, y usé \textbf{RealPLKSR} (2024) en lugar de Real-ESRGAN (2021) para super resolución, porque la guía exige una red de no más de 2 años de antigüedad. Medí aceleraciones de 8.1x--8.7x en detección y 23.7x en super resolución. En la Parte 1C implementé un pipeline de preprocesamiento en OpenCV C++ (suavizado Gaussiano, morfología, Canny, ecualización de histograma) comparando una versión CPU pura contra una versión GPU-only, y obtuve 1.17x--1.74x de aceleración según la resolución de entrada.
+Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo (RTX 4060 Laptop). En la Parte 1B comparé YOLOv12n y YOLOv26n para detección, y usé \textbf{RealPLKSR} (2024) en lugar de Real-ESRGAN (2021) para super resolución, porque la guía exige una red de no más de 2 años de antigüedad. Medí aceleraciones de 8.1x--8.7x en detección y 23.7x en super resolución. En la Parte 1C implementé un pipeline de preprocesamiento en OpenCV C++ (suavizado Gaussiano, morfología, Canny, ecualización de histograma) comparando una versión CPU pura contra una versión GPU-only, y obtuve 1.17x--1.74x de aceleración según la resolución de entrada.
 
 \clearpage
 \tableofcontents
@@ -146,7 +146,7 @@ Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo
 
 Esta práctica reúne tres tareas de visión por computador aceleradas por GPU: segmentación de objetos por transferencia de aprendizaje, comparación de redes de detección y super resolución en vídeo, y un pipeline clásico de preprocesamiento de imágenes en C++ con CUDA. El hilo conductor es el mismo en las tres partes: medir qué tan rápido corre una tarea en GPU frente a CPU, y entender \emph{por qué}.
 
-La guía de práctica permite que la Parte 1A se resuelva en pareja, pero exige que las Partes 1B y 1C sean estrictamente individuales, con evidencia de un computador propio (dirección MAC única). Por eso esta práctica combina un trabajo de equipo (Parte 1A, con Jordy Romero) y un trabajo individual (Partes 1B y 1C, Michael Lata en un equipo distinto al de Jordy).
+La guía de práctica permite que la Parte 1A se resuelva en pareja, pero exige que las Partes 1B y 1C sean estrictamente individuales, con evidencia de un computador propio (dirección MAC única). Por eso esta práctica combina un trabajo en equipo (Parte 1A, junto a Jordy Romero) y un trabajo individual (Partes 1B y 1C, en mi propio equipo, distinto al de Jordy).
 
 % =============================================================================
 \section*{Repositorios del Proyecto}
@@ -424,7 +424,7 @@ Este informe documenta el trabajo técnico completo (entrenamiento, benchmarks, 
 Parte del trabajo de esta práctica se apoyó en el modelo de inteligencia artificial \textbf{Claude Sonnet} (Anthropic, 2025), principalmente como asistente de programación y de redacción. En concreto ayudó a:
 
 \begin{itemize}
-  \item Escribir el script de fusión de datasets y la conversión de bounding boxes a polígonos rectangulares para entrenar segmentación, en una exploración individual previa de Michael Lata sobre un dataset propio.
+  \item Escribir el script de fusión de datasets y la conversión de bounding boxes a polígonos rectangulares para entrenar segmentación, en una exploración individual previa mía sobre un dataset propio.
   \item Investigar y validar \textbf{RealPLKSR} como reemplazo de Real-ESRGAN, para cumplir el requisito de la guía de usar una red de super resolución de no más de 2 años de antigüedad.
   \item Depurar dos errores técnicos de la Parte 1C: un problema de configuración de CMake (el enlazado por defecto arrastraba módulos de OpenCV con símbolos rotos) y un error de medición en el pipeline GPU-only, donde los filtros CUDA se creaban dentro del ciclo de benchmark en lugar de una sola vez.
   \item Redactar este informe a partir de los resultados obtenidos en las ejecuciones reales de cada parte.
