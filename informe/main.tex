@@ -27,6 +27,13 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{parskip}
+\usepackage{needspace}
+
+% Evitar subtitulos "huerfanos" con poco texto antes de un salto de pagina
+\clubpenalty=10000
+\widowpenalty=10000
+\let\oldsubsection\subsection
+\renewcommand{\subsection}[1]{\needspace{5\baselineskip}\oldsubsection{#1}}
 
 % --- Colores UPS ---
 \definecolor{salesiana}{RGB}{0,84,166}
@@ -118,12 +125,6 @@
     \textbf{Período:}    & Marzo -- Agosto 2026 \\[0.3cm]
     \textbf{Fecha:}      & 18 de julio de 2026 \\
   \end{tabular}
-
-  \vspace{1cm}
-  \parbox{0.8\textwidth}{\centering\small\itshape
-    Las Partes 1B y 1C son de desarrollo individual y usan un equipo distinto
-    (RTX 4060 Laptop, MAC propia) al de la Parte 1A, conforme lo exige la guía.
-  }
 
   \vfill
   \rule{\linewidth}{1.5pt}
