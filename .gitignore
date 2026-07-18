@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+train.log
+
+# Datasets pesados y regenerables (ver merge_dataset.py)
+Parte1A/datasets_raw/
+Parte1A/dataset_traffic_objects/
+
+# Build de Parte1C (depende de CUDA Toolkit + opencv-cuda instalados localmente)
+Parte1C/build/
