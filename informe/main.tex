@@ -132,9 +132,9 @@
 % --- Resumen ---
 \section*{Resumen}
 
-Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) se desarrolló en equipo entre Jordy Romero y Michael Lata: se entrenó YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), midiendo una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS) en una RTX 3080.
+Esta práctica tiene tres partes con distinto grado de individualidad según la guía. La Parte 1A (segmentación con YOLOv11, admite pareja) la hicimos en equipo entre Jordy Romero y Michael Lata: entrenamos YOLOv11n-seg por transferencia de aprendizaje sobre un dataset propio de tres clases (señal de pare, semáforo, cono de tránsito), y medimos una aceleración de 6.5x de GPU frente a CPU (99.0 FPS vs 15.2 FPS) en una RTX 3080.
 
-Las Partes 1B y 1C son individuales y se desarrollaron íntegramente en el equipo de Michael Lata (RTX 4060 Laptop). En la Parte 1B se comparó YOLOv12n y YOLOv26n para detección, y se usó \textbf{RealPLKSR} (2024) en lugar de Real-ESRGAN (2021) para super resolución, porque la guía exige una red de no más de 2 años de antigüedad. Se midieron aceleraciones de 8.1x--8.7x en detección y 23.7x en super resolución. En la Parte 1C se implementó un pipeline de preprocesamiento en OpenCV C++ (suavizado Gaussiano, morfología, Canny, ecualización de histograma) comparando una versión CPU pura contra una versión GPU-only, obteniendo 1.17x--1.74x de aceleración según la resolución de entrada.
+Las Partes 1B y 1C son individuales y las hice íntegramente en mi propio equipo (Michael Lata, RTX 4060 Laptop). En la Parte 1B comparé YOLOv12n y YOLOv26n para detección, y usé \textbf{RealPLKSR} (2024) en lugar de Real-ESRGAN (2021) para super resolución, porque la guía exige una red de no más de 2 años de antigüedad. Medí aceleraciones de 8.1x--8.7x en detección y 23.7x en super resolución. En la Parte 1C implementé un pipeline de preprocesamiento en OpenCV C++ (suavizado Gaussiano, morfología, Canny, ecualización de histograma) comparando una versión CPU pura contra una versión GPU-only, y obtuve 1.17x--1.74x de aceleración según la resolución de entrada.
 
 \clearpage
 \tableofcontents
@@ -187,7 +187,7 @@ La partición final quedó en 237 imágenes de entrenamiento, 53 de validación 
 
 \subsection{Entrenamiento por transferencia de aprendizaje}
 
-Se usó YOLOv11n-seg (Ultralytics) como base preentrenada, con fine-tuning de 60 épocas sobre el dataset propio:
+Usamos YOLOv11n-seg (Ultralytics) como base preentrenada y aplicamos fine-tuning de 60 épocas sobre el dataset propio:
 
 \begin{lstlisting}[style=pystyle]
 model = YOLO('models/yolo11n-seg.pt')
@@ -200,7 +200,7 @@ model.train(
 )
 \end{lstlisting}
 
-El entrenamiento se ejecutó en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). Las métricas de validación (mAP) no quedaron registradas en la ejecución de esta corrida del notebook; el análisis cuantitativo de esta sección se basa en el benchmark de velocidad y en la inspección cualitativa de las inferencias, que sí se guardaron.
+Entrenamos en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). No nos quedaron registradas las métricas de validación (mAP) de esta corrida del notebook; el análisis cuantitativo de esta sección se apoya en el benchmark de velocidad y en la inspección cualitativa de las inferencias, que sí guardamos.
 
 \begin{figure}[htbp]
   \centering
@@ -248,21 +248,21 @@ El entrenamiento se ejecutó en el equipo de Jordy Romero (NVIDIA GeForce RTX 30
 
 Un dato interesante: el modelo generaliza a conos de tránsito reales (Figura~\ref{fig:inferencia_conos}) habiendo entrenado únicamente con conos sintéticos generados por OpenCV, lo que sugiere que la forma geométrica simple del cono (triángulo con franjas) es fácil de aprender incluso sin textura fotorrealista.
 
-\textbf{Pendiente:} la guía pide segmentar imágenes capturadas por webcam en vivo, comparando GPU vs CPU. La función \texttt{run\_webcam()} quedó lista en el notebook pero la grabación en vivo aún no se realizó; queda pendiente para el equipo antes de la entrega final.
+\textbf{Pendiente:} la guía pide segmentar imágenes capturadas por webcam en vivo, comparando GPU vs CPU. Dejamos lista la función \texttt{run\_webcam()} en el notebook, pero todavía no grabamos esa evidencia; queda pendiente para el equipo antes de la entrega final.
 
 % =============================================================================
 \section{Parte 1B: Detección YOLOv12/YOLOv26 y Super Resolución (individual)}
 % =============================================================================
 
-Esta parte se desarrolló íntegramente en el equipo individual de Michael Lata (RTX 4060 Laptop, 7.65 GB VRAM, MAC \texttt{58:1c:f8:2e:dc:c7}), distinto al usado en la Parte 1A, conforme lo exige la guía.
+Esta parte la hice íntegramente en mi propio equipo (RTX 4060 Laptop, 7.65 GB VRAM, MAC \texttt{58:1c:f8:2e:dc:c7}), distinto al usado en la Parte 1A, conforme lo exige la guía que sea individual.
 
 \subsection{Por qué RealPLKSR y no Real-ESRGAN}
 
-La guía exige una red de super resolución de \textbf{no más de 2 años de existencia}. Real-ESRGAN (Wang et al., 2021)~[4] ya tiene alrededor de 5 años, por lo que se reemplazó por \textbf{RealPLKSR}~[3], una arquitectura CNN eficiente publicada en abril de 2024 (menos de 2 años a la fecha de esta práctica), pensada específicamente para super resolución de imágenes reales con degradaciones (ruido, blur, recompresión), el mismo caso de uso que cubría Real-ESRGAN. Se usaron los pesos públicos \texttt{4xNomosWebPhoto\_RealPLKSR} (licencia CC-BY-4.0), cargados con la librería \texttt{spandrel}.
+La guía exige una red de super resolución de \textbf{no más de 2 años de existencia}. Real-ESRGAN (Wang et al., 2021)~[4] ya tiene alrededor de 5 años, así que la reemplacé por \textbf{RealPLKSR}~[3], una arquitectura CNN eficiente publicada en abril de 2024 (menos de 2 años a la fecha de esta práctica), pensada específicamente para super resolución de imágenes reales con degradaciones (ruido, blur, recompresión) -- el mismo caso de uso que cubría Real-ESRGAN. Usé los pesos públicos \texttt{4xNomosWebPhoto\_RealPLKSR} (licencia CC-BY-4.0), cargados con la librería \texttt{spandrel}.
 
 \subsection{Metodología}
 
-Se construyeron dos scripts complementarios: \texttt{benchmark\_live.py}, pensado para grabar pantalla mostrando FPS, uso de RAM, salida de \texttt{nvidia-smi} y la dirección MAC del equipo en tiempo real; y \texttt{benchmark\_offline.py}, que corre el mismo benchmark de forma reproducible sobre imágenes fijas para obtener números consistentes para este informe.
+Construí dos scripts complementarios: \texttt{benchmark\_live.py}, pensado para grabar pantalla mostrando FPS, uso de RAM, salida de \texttt{nvidia-smi} y la dirección MAC del equipo en tiempo real; y \texttt{benchmark\_offline.py}, que corre el mismo benchmark de forma reproducible sobre imágenes fijas para tener números consistentes para este informe.
 
 \begin{lstlisting}[style=pystyle]
 def benchmark_detect(model_name, images, device, n=30):
@@ -301,17 +301,17 @@ El uso de VRAM medido para RealPLKSR fue de \textbf{0.04 GB de 7.65 GB totales},
 
 La super resolución es la tarea que más se beneficia de la GPU (23.7x) porque es la más intensiva en cómputo por píxel (convoluciones de kernel grande sobre una imagen que además se \emph{aumenta} 4x); la detección se beneficia menos en términos relativos (8.1x--8.7x) porque YOLO nano ya es una arquitectura liviana pensada para correr razonablemente bien también en CPU.
 
-\textbf{Pendiente:} la evidencia oficial que pide la guía es un \emph{vídeo en vivo} (no un benchmark offline) mostrando el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC mientras corre \texttt{benchmark\_live.py} sobre webcam. Esa grabación queda pendiente de que Michael la haga antes de la entrega final; los números de esta sección son de una corrida offline reproducible sobre imágenes fijas, no de la grabación en vivo.
+\textbf{Pendiente:} la evidencia oficial que pide la guía es un \emph{vídeo en vivo} (no un benchmark offline) mostrando el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC mientras corre \texttt{benchmark\_live.py} sobre webcam. Todavía tengo pendiente esa grabación antes de la entrega final; los números de esta sección son de una corrida offline reproducible sobre imágenes fijas, no de la grabación en vivo.
 
 % =============================================================================
 \section{Parte 1C: Pipeline OpenCV CUDA C++ -- CPU vs GPU-only (individual)}
 % =============================================================================
 
-También individual, en el mismo equipo (RTX 4060 Laptop) que la Parte 1B.
+Esta parte también es individual, y la hice en el mismo equipo (RTX 4060 Laptop) que la Parte 1B.
 
 \subsection{Operaciones implementadas}
 
-Se implementaron las cuatro operaciones que pide la guía -- suavizado Gaussiano, operaciones morfológicas (erosión/dilatación), detección de bordes (Canny) y ecualización de histograma -- en dos versiones: una con \texttt{cv::Mat} (CPU) y otra \emph{GPU-only} con \texttt{cv::cuda::GpuMat}, con un solo \texttt{upload()} al inicio y un solo \texttt{download()} al final para evitar transferencias intermedias CPU$\leftrightarrow$GPU.
+Implementé las cuatro operaciones que pide la guía -- suavizado Gaussiano, operaciones morfológicas (erosión/dilatación), detección de bordes (Canny) y ecualización de histograma -- en dos versiones: una con \texttt{cv::Mat} (CPU) y otra \emph{GPU-only} con \texttt{cv::cuda::GpuMat}, con un solo \texttt{upload()} al inicio y un solo \texttt{download()} al final para evitar transferencias intermedias CPU$\leftrightarrow$GPU.
 
 \begin{lstlisting}
 struct GpuPipeline {
@@ -344,7 +344,7 @@ struct GpuPipeline {
 
 \subsection{Un error de medición real y su corrección}
 
-En la primera versión, los filtros CUDA (\texttt{createGaussianFilter}, \texttt{createMorphologyFilter}, \texttt{createCannyEdgeDetector}) se creaban dentro del ciclo de benchmark, en cada una de las 50 iteraciones. Esto hizo que la versión ``GPU'' midiera \textbf{más lenta} que la CPU (0.19x) -- un resultado que a primera vista parece un problema de rendimiento de la tarjeta, pero en realidad es un error de uso de la API: estas funciones son \emph{fábricas} pensadas para crearse una sola vez y reutilizarse con \texttt{->apply()} en cada frame. Al mover la creación de los filtros fuera del ciclo (estructura \texttt{GpuPipeline} de arriba), la GPU pasó a rendir por encima de la CPU, como se esperaba.
+En la primera versión que escribí, los filtros CUDA (\texttt{createGaussianFilter}, \texttt{createMorphologyFilter}, \texttt{createCannyEdgeDetector}) se creaban dentro del ciclo de benchmark, en cada una de las 50 iteraciones. Eso hizo que la versión ``GPU'' midiera \textbf{más lenta} que la CPU (0.19x) -- un resultado que a primera vista parece un problema de rendimiento de la tarjeta, pero en realidad era un error mío de uso de la API: estas funciones son \emph{fábricas} pensadas para crearse una sola vez y reutilizarse con \texttt{->apply()} en cada frame. Al mover la creación de los filtros fuera del ciclo (estructura \texttt{GpuPipeline} de arriba), la GPU pasó a rendir por encima de la CPU, como cabía esperar.
 
 \subsection{Resultados}
 
