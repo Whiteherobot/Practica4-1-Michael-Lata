@@ -157,7 +157,10 @@ La guía de práctica permite que la Parte 1A se resuelva en pareja, pero exige 
         \url{https://github.com/jordyromero03/ClasificacionObjetosYOLO}
 
   \item \textbf{Parte 1B y 1C — Trabajo individual (Michael Lata):}\\
-        \texttt{Practica4-1 Michael Lata/} — repositorio git local, aún no publicado a un remoto.
+        \url{https://github.com/Whiteherobot/Practica4-1-Michael-Lata}
+
+  \item \textbf{Video de evidencia Parte 1B (detección y super resolución, GPU vs CPU):}\\
+        \url{https://drive.google.com/file/d/1H9sMS6lSQeobTsxFLmVJPLGcGMJwx6sS/view?usp=sharing}
 \end{itemize}
 
 % =============================================================================
@@ -301,7 +304,7 @@ El uso de VRAM medido para RealPLKSR fue de \textbf{0.04 GB de 7.65 GB totales},
 
 La super resolución es la tarea que más se beneficia de la GPU (23.7x) porque es la más intensiva en cómputo por píxel (convoluciones de kernel grande sobre una imagen que además se \emph{aumenta} 4x); la detección se beneficia menos en términos relativos (8.1x--8.7x) porque YOLO nano ya es una arquitectura liviana pensada para correr razonablemente bien también en CPU.
 
-Para la evidencia en vivo que pide la guía, \texttt{benchmark\_live.py} corre exactamente el mismo benchmark sobre webcam mostrando en pantalla el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC en tiempo real, listo para grabar.
+Como evidencia en vivo, grabé con \texttt{benchmark\_live.py} corriendo sobre mi propia webcam en los cuatro modos (detección GPU/CPU y super resolución GPU/CPU), con el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC quemado en cada frame. El video está disponible en el enlace listado en "Repositorios del Proyecto".
 
 % =============================================================================
 \section{Parte 1C: Pipeline OpenCV CUDA C++ -- CPU vs GPU-only (individual)}

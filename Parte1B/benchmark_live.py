@@ -89,6 +89,8 @@ def run_detect(model_name, device, source):
         raise RuntimeError(f"No se pudo abrir la fuente de video: {source}")
 
     win = f"Practica4-1B | {model_name} | {device_name}"
+    cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win, 1280, 960)
     fps_hist = []
     while True:
         ok, frame = cap.read()
@@ -122,6 +124,8 @@ def run_sr(device, source):
         raise RuntimeError(f"No se pudo abrir la fuente de video: {source}")
 
     win = f"Practica4-1B | RealPLKSR x4 | {device_name}"
+    cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win, 1280, 960)
     fps_hist = []
     with torch.no_grad():
         while True:
