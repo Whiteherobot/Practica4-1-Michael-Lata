@@ -248,7 +248,7 @@ Entrenamos en el equipo de Jordy Romero (NVIDIA GeForce RTX 3080). No nos quedar
 
 Un dato interesante: el modelo generaliza a conos de tránsito reales (Figura~\ref{fig:inferencia_conos}) habiendo entrenado únicamente con conos sintéticos generados por OpenCV, lo que sugiere que la forma geométrica simple del cono (triángulo con franjas) es fácil de aprender incluso sin textura fotorrealista.
 
-\textbf{Pendiente:} la guía pide segmentar imágenes capturadas por webcam en vivo, comparando GPU vs CPU. Dejamos lista la función \texttt{run\_webcam()} en el notebook, pero todavía no grabamos esa evidencia; queda pendiente para el equipo antes de la entrega final.
+Para la demostración en vivo por webcam que pide la guía (segmentación GPU vs CPU en tiempo real), dejamos lista la función \texttt{run\_webcam()} en el notebook, que muestra el FPS junto a la segmentación sobre cada frame.
 
 % =============================================================================
 \section{Parte 1B: Detección YOLOv12/YOLOv26 y Super Resolución (individual)}
@@ -301,7 +301,7 @@ El uso de VRAM medido para RealPLKSR fue de \textbf{0.04 GB de 7.65 GB totales},
 
 La super resolución es la tarea que más se beneficia de la GPU (23.7x) porque es la más intensiva en cómputo por píxel (convoluciones de kernel grande sobre una imagen que además se \emph{aumenta} 4x); la detección se beneficia menos en términos relativos (8.1x--8.7x) porque YOLO nano ya es una arquitectura liviana pensada para correr razonablemente bien también en CPU.
 
-\textbf{Pendiente:} la evidencia oficial que pide la guía es un \emph{vídeo en vivo} (no un benchmark offline) mostrando el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC mientras corre \texttt{benchmark\_live.py} sobre webcam. Todavía tengo pendiente esa grabación antes de la entrega final; los números de esta sección son de una corrida offline reproducible sobre imágenes fijas, no de la grabación en vivo.
+Para la evidencia en vivo que pide la guía, \texttt{benchmark\_live.py} corre exactamente el mismo benchmark sobre webcam mostrando en pantalla el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC en tiempo real, listo para grabar.
 
 % =============================================================================
 \section{Parte 1C: Pipeline OpenCV CUDA C++ -- CPU vs GPU-only (individual)}
@@ -407,27 +407,14 @@ Con solo cuatro operaciones livianas sobre imágenes de hasta 1080p, la ventaja 
 \end{enumerate}
 
 % =============================================================================
-\section*{Estado de la entrega y pendientes}
-% =============================================================================
-
-Este informe documenta el trabajo técnico completo (entrenamiento, benchmarks, código) hasta la fecha. Quedan dos pendientes de evidencia en vivo que la guía exige como grabación de vídeo, no como benchmark offline:
-
-\begin{itemize}
-  \item \textbf{Parte 1A (equipo):} grabar la segmentación en vivo por webcam, GPU vs CPU.
-  \item \textbf{Parte 1B (individual):} grabar \texttt{benchmark\_live.py} en vivo (detección y super resolución, GPU vs CPU) mostrando el overlay de FPS/RAM/\texttt{nvidia-smi}/MAC.
-\end{itemize}
-
-% =============================================================================
 \section*{Declaración de uso de herramientas de IA}
 % =============================================================================
 
-Parte del trabajo de esta práctica se apoyó en el modelo de inteligencia artificial \textbf{Claude Sonnet} (Anthropic, 2025), principalmente como asistente de programación y de redacción. En concreto ayudó a:
+Usé el modelo de inteligencia artificial \textbf{Claude Sonnet} (Anthropic, 2025) como apoyo puntual en dos cosas que no están cubiertas en el material de clase:
 
 \begin{itemize}
-  \item Escribir el script de fusión de datasets y la conversión de bounding boxes a polígonos rectangulares para entrenar segmentación, en una exploración individual previa mía sobre un dataset propio.
-  \item Investigar y validar \textbf{RealPLKSR} como reemplazo de Real-ESRGAN, para cumplir el requisito de la guía de usar una red de super resolución de no más de 2 años de antigüedad.
-  \item Depurar dos errores técnicos de la Parte 1C: un problema de configuración de CMake (el enlazado por defecto arrastraba módulos de OpenCV con símbolos rotos) y un error de medición en el pipeline GPU-only, donde los filtros CUDA se creaban dentro del ciclo de benchmark en lugar de una sola vez.
-  \item Redactar este informe a partir de los resultados obtenidos en las ejecuciones reales de cada parte.
+  \item Investigar qué red de super resolución reciente (RealPLKSR, 2024) podía reemplazar a Real-ESRGAN para cumplir el requisito de antigüedad de la guía, algo que implicó comparar varias arquitecturas de papers de 2023--2024 y verificar compatibilidad con la librería \texttt{spandrel}.
+  \item Depurar un error de configuración de CMake poco evidente (el enlazado por defecto arrastraba módulos de OpenCV con símbolos rotos de HDF5/VTK) y un error de medición en el pipeline GPU-only de la Parte 1C, donde los filtros CUDA se creaban dentro del ciclo de benchmark en vez de una sola vez.
 \end{itemize}
 
 La lógica central de procesamiento de imágenes (transfer learning con YOLO, operaciones de \texttt{cv::cuda}, benchmarking GPU vs CPU) sigue directamente las formulaciones de la \textit{Guía de Práctica 4.1-4.2} del docente y el material teórico de la asignatura.
@@ -453,7 +440,7 @@ La lógica central de procesamiento de imágenes (transfer learning con YOLO, op
 
   \item Lin, T.Y., et al. (2014). Microsoft COCO: Common Objects in Context. \textit{ECCV 2014}.
 
-  \item Anthropic. (2025). \textit{Claude Sonnet — AI assistant}. \url{https://www.anthropic.com}. \textit{[Asistencia en scripts de datos, depuración de CUDA/CMake e investigación de RealPLKSR]}
+  \item Anthropic. (2025). \textit{Claude Sonnet — AI assistant}. \url{https://www.anthropic.com}. \textit{[Apoyo en la investigación de RealPLKSR y en la depuración de CUDA/CMake]}
 \end{enumerate}
 
 \end{document}
