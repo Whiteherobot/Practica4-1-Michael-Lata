@@ -316,6 +316,7 @@ Esta parte también es individual, y la hice en el mismo equipo (RTX 4060 Laptop
 
 Implementé las cuatro operaciones que pide la guía -- suavizado Gaussiano, operaciones morfológicas (erosión/dilatación), detección de bordes (Canny) y ecualización de histograma -- en dos versiones: una con \texttt{cv::Mat} (CPU) y otra \emph{GPU-only} con \texttt{cv::cuda::GpuMat}, con un solo \texttt{upload()} al inicio y un solo \texttt{download()} al final para evitar transferencias intermedias CPU$\leftrightarrow$GPU.
 
+\clearpage
 \begin{lstlisting}
 struct GpuPipeline {
     cv::Ptr<cv::cuda::Filter> gauss, erode_f, dilate_f;
